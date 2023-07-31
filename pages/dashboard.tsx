@@ -1,13 +1,10 @@
-import { UserButton } from "@clerk/nextjs";
-import React from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const DashboardPage = () => {
   return (
-    <div>
+    <DashboardLayout>
       <p>Dashboard Page (Protected)</p>
-
-      <UserButton afterSignOutUrl="/" />
-    </div>
+    </DashboardLayout>
   );
 };
 
