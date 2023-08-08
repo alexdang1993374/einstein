@@ -6,12 +6,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import BotAvatar from "@/components/BotAvatar";
 import DashboardLayout from "@/components/DashboardLayout";
+import Empty from "@/components/Empty";
 import Heading from "@/components/Heading";
+import Loader from "@/components/Loader";
+import UserAvatar from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { formSchema } from "@/constants/schema";
+import { cn } from "@/lib/utils";
 
 const ConversationPage = () => {
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
@@ -40,7 +45,7 @@ const ConversationPage = () => {
       setMessages((prev) => [
         ...prev,
         userMessage,
-        { role: "user", content: response.data },
+        { role: "system", content: response.data },
       ]);
 
       form.reset();
@@ -98,10 +103,32 @@ const ConversationPage = () => {
           </div>
 
           <div className="space-y-4 mt-4">
+            {isLoading && (
+              <div className="p-8 rounded-lg w-full flex items-center justify-center bg-muted">
+                <Loader />
+              </div>
+            )}
+
+            {messages.length === 0 && !isLoading && (
+              <div>
+                <Empty label="No conversation started." />
+              </div>
+            )}
+
             <div className="flex flex-col-reverse gap-y-4">
               {messages.map((message, index) => (
-                <div key={index + (message.content || "")}>
-                  {message.content}
+                <div
+                  key={index + (message.content || "")}
+                  className={cn(
+                    "p-8 w-full flex items-start gap-x-8 rounded-lg",
+                    message.role === "user"
+                      ? "bg-white border border-black/10"
+                      : "bg-muted"
+                  )}
+                >
+                  {message.role === "user" ? <UserAvatar /> : <BotAvatar />}
+
+                  <p className="text-sm">{message.content}</p>
                 </div>
               ))}
             </div>
