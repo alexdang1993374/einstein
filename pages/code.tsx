@@ -16,14 +16,14 @@ import UserAvatar from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formSchema } from "@/constants/schema";
+import { conversationFormSchema } from "@/constants/schema";
 import { cn } from "@/lib/utils";
 
 const CodePage = () => {
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof conversationFormSchema>>({
+    resolver: zodResolver(conversationFormSchema),
     defaultValues: {
       prompt: "",
     },
@@ -31,7 +31,7 @@ const CodePage = () => {
 
   const isLoading = form.formState.isSubmitting;
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof conversationFormSchema>) => {
     try {
       const userMessage: ChatCompletionRequestMessage = {
         role: "user",
