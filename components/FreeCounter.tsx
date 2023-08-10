@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { MAX_FREE_COUNTS } from "@/constants";
 import useFreeCounter from "@/hooks/useFreeCounter";
+import useProModal from "@/hooks/useProModal";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -14,9 +15,10 @@ interface IGetApiLimitCountResponse {
 
 const FreeCounter = () => {
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
+  const { onOpen } = useProModal();
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted: boolean = true;
 
     const getApiLimitCount = async () => {
       const response: IGetApiLimitCountResponse = await axios.get(
@@ -51,7 +53,7 @@ const FreeCounter = () => {
             />
           </div>
 
-          <Button className="w-full" variant="premium">
+          <Button className="w-full" variant="premium" onClick={onOpen}>
             Upgrade
             <Zap className="w-4 h-4 ml-2 fill-white" />
           </Button>
