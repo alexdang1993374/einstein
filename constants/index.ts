@@ -91,3 +91,5 @@ export const tools: ITools[] = [
     href: "/code",
   },
 ];
+
+export const MAX_FREE_COUNTS = 5;
