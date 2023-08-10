@@ -1,7 +1,8 @@
 import { getAuth } from "@clerk/nextjs/server";
 import { NextApiRequest, NextApiResponse } from "next";
-import { NextResponse } from "next/server";
 import Replicate from "replicate";
+
+import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || "",
@@ -21,11 +22,17 @@ export default async function handler(
     const { prompt } = await req.body;
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     if (!prompt) {
-      return new NextResponse("Propmpt is required", { status: 400 });
+      return res.status(400).json({ message: "Propmpt is required" });
+    }
+
+    const freeTrial = await checkApiLimit(req);
+
+    if (!freeTrial) {
+      return res.status(403).json({ message: "Free trial has expired." });
     }
 
     const response = await replicate.run(
@@ -37,9 +44,11 @@ export default async function handler(
       }
     );
 
+    await increaseApiLimit(req);
+
     return res.json(response);
   } catch (error) {
     console.log("[MUSIC_ERROR]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return res.status(500).json({ message: "Internal error" });
   }
 }
