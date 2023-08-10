@@ -21,10 +21,12 @@ import {
   resolutionOptions,
 } from "@/constants/schema";
 import useFreeCounter from "@/hooks/useFreeCounter";
+import useProModal from "@/hooks/useProModal";
 
 const ImagePage = () => {
   const [images, setImages] = useState<string[]>([]);
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
+  const { onOpen } = useProModal();
 
   const form = useForm<z.infer<typeof imageFormSchema>>({
     resolver: zodResolver(imageFormSchema),
@@ -52,9 +54,10 @@ const ImagePage = () => {
       setApiLimitCount(apiLimitCount + 1);
 
       form.reset();
-    } catch (error) {
-      // TODO: Open Pro Modal
-      console.log(error);
+    } catch (error: any) {
+      if (error?.response?.status === 403) {
+        onOpen();
+      }
     }
   };
 

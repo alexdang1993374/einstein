@@ -17,11 +17,13 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { conversationFormSchema } from "@/constants/schema";
 import useFreeCounter from "@/hooks/useFreeCounter";
+import useProModal from "@/hooks/useProModal";
 import { cn } from "@/lib/utils";
 
 const ConversationPage = () => {
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
+  const { onOpen } = useProModal();
 
   const form = useForm<z.infer<typeof conversationFormSchema>>({
     resolver: zodResolver(conversationFormSchema),
@@ -53,9 +55,10 @@ const ConversationPage = () => {
       setApiLimitCount(apiLimitCount + 1);
 
       form.reset();
-    } catch (error) {
-      // TODO: Open Pro Modal
-      console.log(error);
+    } catch (error: any) {
+      if (error?.response?.status === 403) {
+        onOpen();
+      }
     }
   };
 

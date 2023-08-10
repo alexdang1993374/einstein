@@ -14,10 +14,12 @@ import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { conversationFormSchema } from "@/constants/schema";
 import useFreeCounter from "@/hooks/useFreeCounter";
+import useProModal from "@/hooks/useProModal";
 
 const MusicPage = () => {
   const [music, setMusic] = useState<string>();
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
+  const { onOpen } = useProModal();
 
   const form = useForm<z.infer<typeof conversationFormSchema>>({
     resolver: zodResolver(conversationFormSchema),
@@ -39,9 +41,10 @@ const MusicPage = () => {
       setApiLimitCount(apiLimitCount + 1);
 
       form.reset();
-    } catch (error) {
-      // TODO: Open Pro Modal
-      console.log(error);
+    } catch (error: any) {
+      if (error?.response?.status === 403) {
+        onOpen();
+      }
     }
   };
 
