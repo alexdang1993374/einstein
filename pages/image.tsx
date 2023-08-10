@@ -20,9 +20,11 @@ import {
   imageFormSchema,
   resolutionOptions,
 } from "@/constants/schema";
+import useFreeCounter from "@/hooks/useFreeCounter";
 
 const ImagePage = () => {
   const [images, setImages] = useState<string[]>([]);
+  const { apiLimitCount, setApiLimitCount } = useFreeCounter();
 
   const form = useForm<z.infer<typeof imageFormSchema>>({
     resolver: zodResolver(imageFormSchema),
@@ -46,6 +48,8 @@ const ImagePage = () => {
       );
 
       setImages(urls);
+
+      setApiLimitCount(apiLimitCount + 1);
 
       form.reset();
     } catch (error) {

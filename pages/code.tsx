@@ -17,10 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { conversationFormSchema } from "@/constants/schema";
+import useFreeCounter from "@/hooks/useFreeCounter";
 import { cn } from "@/lib/utils";
 
 const CodePage = () => {
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
+  const { apiLimitCount, setApiLimitCount } = useFreeCounter();
 
   const form = useForm<z.infer<typeof conversationFormSchema>>({
     resolver: zodResolver(conversationFormSchema),
@@ -48,6 +50,8 @@ const CodePage = () => {
         userMessage,
         { role: "system", content: response.data },
       ]);
+
+      setApiLimitCount(apiLimitCount + 1);
 
       form.reset();
     } catch (error) {

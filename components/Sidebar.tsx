@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { routes } from "@/constants";
 import { cn } from "@/lib/utils";
+import FreeCounter from "./FreeCounter";
 
 const montserrat = Montserrat({ weight: "600", subsets: ["latin"] });
 
@@ -45,6 +46,8 @@ const Sidebar = () => {
           ))}
         </div>
       </div>
+
+      <FreeCounter />
     </div>
   );
 };
