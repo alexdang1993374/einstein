@@ -1,4 +1,4 @@
-import { getAuth } from "@clerk/nextjs/server";
+import { clerkClient, getAuth } from "@clerk/nextjs/server";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import prismadb from "@/lib/prismadb";
@@ -17,7 +17,8 @@ export default async function handler(
   }
 
   try {
-    const { userId, user } = getAuth(req);
+    const { userId } = getAuth(req);
+    const user = await clerkClient.users.getUser(userId!);
 
     if (!userId || !user) {
       return res.status(401).json({ message: "Unauthorized" });
@@ -33,7 +34,7 @@ export default async function handler(
         return_url: settingsUrl,
       });
 
-      return res.json(JSON.stringify({ url: stripeSession.url }));
+      return res.json({ url: stripeSession.url });
     }
 
     const stripeSession = await stripe.checkout.sessions.create({
@@ -64,7 +65,7 @@ export default async function handler(
       },
     });
 
-    return res.json(JSON.stringify({ url: stripeSession.url }));
+    return res.json({ url: stripeSession.url });
   } catch (error) {
     console.log("[STRIPE_ERROR]", error);
     return res.status(500).json({ message: "Internal error" });
