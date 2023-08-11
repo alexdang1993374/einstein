@@ -1,6 +1,7 @@
 import prismadb from "@/lib/prismadb";
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
+import Stripe from "stripe";
 
 const stripe = require("stripe")(process.env.STRIPE_API_KEY);
 
@@ -10,7 +11,7 @@ export default async function handler(
 ) {
   const sig = req.headers["stripe-signature"];
 
-  let event;
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
@@ -23,7 +24,7 @@ export default async function handler(
     return;
   }
 
-  const session = event.data.object;
+  const session = event.data.object as Stripe.Checkout.Session;
 
   const subscription = await stripe.subscriptions.retrieve(
     session.subscription as string
