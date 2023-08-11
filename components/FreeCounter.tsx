@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Zap } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { MAX_FREE_COUNTS } from "@/constants";
 import useFreeCounter from "@/hooks/useFreeCounter";
@@ -14,19 +14,52 @@ interface IGetApiLimitCountResponse {
 }
 
 const FreeCounter = () => {
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
   const { onOpen } = useProModal();
 
   useEffect(() => {
     let isMounted: boolean = true;
 
-    const getApiLimitCount = async () => {
-      const response: IGetApiLimitCountResponse = await axios.get(
-        "/api/layout"
-      );
+    const checkIsSubscribed = async () => {
+      try {
+        const response = await axios.get("/api/subscription");
 
-      if (isMounted) {
-        setApiLimitCount(response.data);
+        if (isMounted) {
+          setIsSubscribed(response.data);
+        }
+      } catch (error) {
+        console.log("CHECK_IS_SUBSCRIBED_ERROR", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    checkIsSubscribed();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted: boolean = true;
+
+    const getApiLimitCount = async () => {
+      try {
+        const response: IGetApiLimitCountResponse = await axios.get(
+          "/api/layout"
+        );
+
+        if (isMounted) {
+          setApiLimitCount(response.data);
+        }
+      } catch (error) {
+        console.log("GET_API_LIMIT_COUNT_ERROR", error);
       }
     };
 
@@ -37,6 +70,10 @@ const FreeCounter = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiLimitCount]);
+
+  if (isSubscribed || isLoading) {
+    return null;
+  }
 
   return (
     <div className="px-3">

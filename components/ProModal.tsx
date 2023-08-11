@@ -1,5 +1,5 @@
-import { Check, Zap } from "lucide-react";
 import axios from "axios";
+import { Check, Zap } from "lucide-react";
 import { useState } from "react";
 
 import { tools } from "@/constants";
@@ -69,6 +69,7 @@ const ProModal = () => {
 
         <DialogFooter>
           <Button
+            disabled={isLoading}
             size="lg"
             variant="premium"
             className="w-full"
