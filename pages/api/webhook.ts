@@ -1,75 +1,74 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { headers } from "next/headers";
-import Stripe from "stripe";
-
 import prismadb from "@/lib/prismadb";
-import { stripe } from "@/lib/stripe";
+import { buffer } from "micro";
+import type { NextApiRequest, NextApiResponse } from "next";
+
+const stripe = require("stripe")(process.env.STRIPE_API_KEY);
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>
 ) {
-  if (req.method !== "POST") {
-    res.json("Should be POST request");
-    return;
-  }
+  const sig = req.headers["stripe-signature"];
 
-  const body = await req.body;
-  const signature = headers().get("Stripe-Signature") as string;
-
-  let event: Stripe.Event;
+  let event;
 
   try {
     event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      await buffer(req),
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
     );
-  } catch (error: any) {
-    return res.status(400).json({ message: `Webhook Error: ${error.message}` });
+  } catch (err: any) {
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
+  const session = event.data.object;
 
-  if (event.type === "checkout.session.completed") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
+  const subscription = await stripe.subscriptions.retrieve(
+    session.subscription as string
+  );
 
-    if (!session?.metadata?.userId) {
-      return res.status(400).json({ message: "User ID is required" });
-    }
+  switch (event.type) {
+    case "checkout.session.completed":
+      if (!session?.metadata?.userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
 
-    await prismadb.userSubscription.create({
-      data: {
-        userId: session?.metadata?.userId,
-        stripeSubscriptionId: subscription.id,
-        stripeCustomerId: subscription.customer as string,
-        stripePriceId: subscription.items.data[0].price.id,
-        stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000
-        ),
-      },
-    });
+      await prismadb.userSubscription.create({
+        data: {
+          userId: session?.metadata?.userId,
+          stripeSubscriptionId: subscription.id,
+          stripeCustomerId: subscription.customer as string,
+          stripePriceId: subscription.items.data[0].price.id,
+          stripeCurrentPeriodEnd: new Date(
+            subscription.current_period_end * 1000
+          ),
+        },
+      });
+      break;
+
+    case "invoice.payment_succeeded":
+      await prismadb.userSubscription.update({
+        where: {
+          stripeSubscriptionId: subscription.id,
+        },
+        data: {
+          stripePriceId: subscription.items.data[0].price.id,
+          stripeCurrentPeriodEnd: new Date(
+            subscription.current_period_end * 1000
+          ),
+        },
+      });
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
   }
 
-  if (event.type === "invoice.payment_succeeded") {
-    const subscription = await stripe.subscriptions.retrieve(
-      session.subscription as string
-    );
-
-    await prismadb.userSubscription.update({
-      where: {
-        stripeSubscriptionId: subscription.id,
-      },
-      data: {
-        stripePriceId: subscription.items.data[0].price.id,
-        stripeCurrentPeriodEnd: new Date(
-          subscription.current_period_end * 1000
-        ),
-      },
-    });
-  }
-
-  return res.status(200).json({ message: "Webhook Success" });
+  res.status(200).send("ok");
 }
+
+export const config = {
+  api: { bodyParser: false },
+};
