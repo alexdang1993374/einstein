@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
 import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
+import { checkSubscription } from "@/lib/subscription";
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -36,8 +37,9 @@ export default async function handler(
     }
 
     const freeTrial = await checkApiLimit(req);
+    const isSubscribed = await checkSubscription(req);
 
-    if (!freeTrial) {
+    if (!freeTrial && !isSubscribed) {
       return res.status(403).json({ message: "Free trial has expired." });
     }
 
@@ -46,7 +48,9 @@ export default async function handler(
       messages,
     });
 
-    await increaseApiLimit(req);
+    if (!isSubscribed) {
+      await increaseApiLimit(req);
+    }
 
     return res.json(response.data.choices[0].message?.content);
   } catch (error) {

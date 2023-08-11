@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import Replicate from "replicate";
 
 import { checkApiLimit, increaseApiLimit } from "@/lib/api-limit";
+import { checkSubscription } from "@/lib/subscription";
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || "",
@@ -30,8 +31,9 @@ export default async function handler(
     }
 
     const freeTrial = await checkApiLimit(req);
+    const isSubscribed = await checkSubscription(req);
 
-    if (!freeTrial) {
+    if (!freeTrial && !isSubscribed) {
       return res.status(403).json({ message: "Free trial has expired." });
     }
 
@@ -44,7 +46,9 @@ export default async function handler(
       }
     );
 
-    await increaseApiLimit(req);
+    if (!isSubscribed) {
+      await increaseApiLimit(req);
+    }
 
     return res.json(response);
   } catch (error) {
