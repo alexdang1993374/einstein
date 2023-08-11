@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MAX_FREE_COUNTS } from "@/constants";
 import useFreeCounter from "@/hooks/useFreeCounter";
 import useProModal from "@/hooks/useProModal";
+import useSubscription from "@/hooks/useSubscription";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Progress } from "./ui/progress";
@@ -14,11 +15,11 @@ interface IGetApiLimitCountResponse {
 }
 
 const FreeCounter = () => {
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
   const { onOpen } = useProModal();
+  const { isSubscribed, setIsSubscribed } = useSubscription();
 
   useEffect(() => {
     let isMounted: boolean = true;

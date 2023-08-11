@@ -18,12 +18,15 @@ import { Input } from "@/components/ui/input";
 import { conversationFormSchema } from "@/constants/schema";
 import useFreeCounter from "@/hooks/useFreeCounter";
 import useProModal from "@/hooks/useProModal";
+import useSubscription from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 
 const ConversationPage = () => {
   const [messages, setMessages] = useState<ChatCompletionRequestMessage[]>([]);
+
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
   const { onOpen } = useProModal();
+  const { isSubscribed } = useSubscription();
 
   const form = useForm<z.infer<typeof conversationFormSchema>>({
     resolver: zodResolver(conversationFormSchema),
@@ -52,7 +55,9 @@ const ConversationPage = () => {
         { role: "system", content: response.data },
       ]);
 
-      setApiLimitCount(apiLimitCount + 1);
+      if (!isSubscribed) {
+        setApiLimitCount(apiLimitCount + 1);
+      }
 
       form.reset();
     } catch (error: any) {

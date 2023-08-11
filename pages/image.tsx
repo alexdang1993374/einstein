@@ -22,11 +22,14 @@ import {
 } from "@/constants/schema";
 import useFreeCounter from "@/hooks/useFreeCounter";
 import useProModal from "@/hooks/useProModal";
+import useSubscription from "@/hooks/useSubscription";
 
 const ImagePage = () => {
   const [images, setImages] = useState<string[]>([]);
+
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
   const { onOpen } = useProModal();
+  const { isSubscribed } = useSubscription();
 
   const form = useForm<z.infer<typeof imageFormSchema>>({
     resolver: zodResolver(imageFormSchema),
@@ -51,7 +54,9 @@ const ImagePage = () => {
 
       setImages(urls);
 
-      setApiLimitCount(apiLimitCount + 1);
+      if (!isSubscribed) {
+        setApiLimitCount(apiLimitCount + 1);
+      }
 
       form.reset();
     } catch (error: any) {

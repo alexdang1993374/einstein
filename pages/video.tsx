@@ -15,11 +15,14 @@ import { Input } from "@/components/ui/input";
 import { conversationFormSchema } from "@/constants/schema";
 import useFreeCounter from "@/hooks/useFreeCounter";
 import useProModal from "@/hooks/useProModal";
+import useSubscription from "@/hooks/useSubscription";
 
 const VideoPage = () => {
   const [video, setVideo] = useState<string>();
+
   const { apiLimitCount, setApiLimitCount } = useFreeCounter();
   const { onOpen } = useProModal();
+  const { isSubscribed } = useSubscription();
 
   const form = useForm<z.infer<typeof conversationFormSchema>>({
     resolver: zodResolver(conversationFormSchema),
@@ -38,7 +41,9 @@ const VideoPage = () => {
 
       setVideo(response.data[0]);
 
-      setApiLimitCount(apiLimitCount + 1);
+      if (!isSubscribed) {
+        setApiLimitCount(apiLimitCount + 1);
+      }
 
       form.reset();
     } catch (error: any) {
