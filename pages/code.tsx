@@ -4,6 +4,7 @@ import { Code } from "lucide-react";
 import { ChatCompletionRequestMessage } from "openai";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import * as z from "zod";
 
@@ -64,6 +65,8 @@ const CodePage = () => {
     } catch (error: any) {
       if (error?.response?.status === 403) {
         onOpen();
+      } else {
+        toast.error("Something went wrong");
       }
     }
   };

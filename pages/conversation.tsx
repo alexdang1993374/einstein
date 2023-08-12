@@ -4,6 +4,7 @@ import { MessageSquare } from "lucide-react";
 import { ChatCompletionRequestMessage } from "openai";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import * as z from "zod";
 
 import BotAvatar from "@/components/BotAvatar";
@@ -63,6 +64,8 @@ const ConversationPage = () => {
     } catch (error: any) {
       if (error?.response?.status === 403) {
         onOpen();
+      } else {
+        toast.error("Something went wrong");
       }
     }
   };
