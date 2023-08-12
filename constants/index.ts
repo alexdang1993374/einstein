@@ -92,4 +92,40 @@ export const tools: ITools[] = [
   },
 ];
 
+interface ITestimonial {
+  name: string;
+  avatar: string;
+  title: string;
+  description: string;
+}
+
+export const testimonials: ITestimonial[] = [
+  {
+    name: "Benjamin",
+    avatar: "B",
+    title: "Software Engineer",
+    description:
+      "This is a great tool for creating content. It is easy to use and has a lot of features.",
+  },
+  {
+    name: "Andy",
+    avatar: "A",
+    title: "Designer",
+    description: "The image generator is awesome!",
+  },
+  {
+    name: "Cameron",
+    avatar: "C",
+    title: "Lawyer",
+    description:
+      "This tool helps me get busy work done quickly and makes me so efficient!",
+  },
+  {
+    name: "Yuki",
+    avatar: "Y",
+    title: "Teacher",
+    description: "I love this AI tool!",
+  },
+];
+
 export const MAX_FREE_COUNTS = 5;
